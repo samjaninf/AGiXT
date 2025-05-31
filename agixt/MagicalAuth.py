@@ -637,7 +637,7 @@ class MagicalAuth:
         :return: User object
         """
         failures = self.count_failed_logins()
-        if failures >= 50:
+        if failures >= 100:
             raise HTTPException(
                 status_code=429,
                 detail="Too many failed login attempts today. Please try again tomorrow.",
@@ -2548,6 +2548,14 @@ class MagicalAuth:
             ),
         )
         return company
+
+    def get_company_agent_name(self):
+        """Get the agent name associated with the company."""
+        with get_session() as db:
+            company = db.query(Company).filter(Company.id == self.company_id).first()
+            if not company:
+                raise HTTPException(status_code=404, detail="Company not found")
+            return company.agent_name if company.agent_name else getenv("AGENT_NAME")
 
     def update_company(self, company_id: str, name: str) -> CompanyResponse:
         with get_session() as db:
